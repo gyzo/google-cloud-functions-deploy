@@ -22,10 +22,11 @@
 source "$(dirname "$0")/common.sh"
 enable_debug
 
+
 # mandatory parameters
 KEY_FILE=${KEY_FILE:?'KEY_FILE variable missing.'}
 PROJECT=${PROJECT:?'PROJECT variable missing.'}
-FUNCTION_NAME=${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'}
+FUNCTION_NAMES=(${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'})
 ENTRY_POINT=${ENTRY_POINT:?'ENTRY_POINT variable missing.'}
 RUNTIME=${RUNTIME:?'RUNTIME variable missing.'}
 REGION=${REGION:?'REGION variable missing.'}
@@ -80,10 +81,7 @@ fi
 
 info "Starting deployment GCP Cloud Function..."
 
-run gcloud functions deploy ${FUNCTION_NAME} ${ARGS_STRING} ${EXTRA_ARGS} ${gcloud_debug_args}
-
-if [ "${status}" -eq 0 ]; then
-  success "Deployment successful."
-else
-  fail "Deployment failed."
-fi
+for FUNCTION_NAME in "${FUNCTION_NAMES[@]}"; do
+  info "Wdrażanie funkcji: $FUNCTION_NAME"
+  run gcloud functions deploy ${FUNCTION_NAME}" $ARGS_STRING ${EXTRA_ARGS} ${gcloud_debug_args}
+done
