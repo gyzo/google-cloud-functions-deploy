@@ -26,7 +26,7 @@ enable_debug
 # mandatory parameters
 KEY_FILE=${KEY_FILE:?'KEY_FILE variable missing.'}
 PROJECT=${PROJECT:?'PROJECT variable missing.'}
-FUNCTION_NAMES=(${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'})
+IFS=',' read -ra FUNCTION_NAMES <<< "${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'}"
 ENTRY_POINT=${ENTRY_POINT:?'ENTRY_POINT variable missing.'}
 RUNTIME=${RUNTIME:?'RUNTIME variable missing.'}
 REGION=${REGION:?'REGION variable missing.'}
