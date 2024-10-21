@@ -8,6 +8,7 @@
 #   FUNCTION_NAME
 #   ENTRY_POINT
 #   RUNTIME
+#   REGION
 #
 # Optional globals:
 #   MEMORY
@@ -16,6 +17,7 @@
 #   DEBUG
 #   SOURCE
 #   TRIGGER
+#   ALLOW_UNAUTHENTICATED
 
 source "$(dirname "$0")/common.sh"
 enable_debug
@@ -26,6 +28,7 @@ PROJECT=${PROJECT:?'PROJECT variable missing.'}
 FUNCTION_NAME=${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'}
 ENTRY_POINT=${ENTRY_POINT:?'ENTRY_POINT variable missing.'}
 RUNTIME=${RUNTIME:?'RUNTIME variable missing.'}
+REGION=${REGION:?'REGION variable missing.'}
 
 info "Setting up environment".
 
@@ -41,6 +44,10 @@ fi
 
 if [ ! -z "${RUNTIME}" ]; then
   ARGS_STRING="${ARGS_STRING} --runtime=${RUNTIME} "
+fi
+
+if [ ! -z "${REGION}" ]; then
+  ARGS_STRING="${ARGS_STRING} --region=${REGION} "
 fi
 
 if [ ! -z "${ENTRY_POINT}" ]; then
@@ -65,6 +72,10 @@ if [ ! -z "${TRIGGER}" ]; then
   ARGS_STRING="${ARGS_STRING} ${TRIGGER} "
 else
   ARGS_STRING="${ARGS_STRING} --trigger-http "
+fi
+
+if [ ! -z "${ALLOW_UNAUTHENTICATED}" ]; then
+  ARGS_STRING="${ARGS_STRING} --allow-unauthenticated "
 fi
 
 info "Starting deployment GCP Cloud Function..."
