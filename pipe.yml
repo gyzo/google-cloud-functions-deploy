@@ -1,8 +1,8 @@
 name: Google Cloud Function Deploy Pipeline
-image: artemrys/google-cloud-functions-deploy:latest
+image: gyzo/google-cloud-functions-deploy:latest
 description: Deploys code to Google Cloud Function.
-repository: https://bitbucket.org/ArtemRys/google-cloud-functions-deploy
-maintainer: rysartem@gmail.com
+repository: https://github.com/gyzo/google-cloud-functions-deploy
+maintainer: gmyz.piotr@gmail.com
 tags:
   - bitbucket-pipelines
   - google
