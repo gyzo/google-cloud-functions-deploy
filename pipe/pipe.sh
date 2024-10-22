@@ -26,10 +26,24 @@ enable_debug
 # mandatory parameters
 KEY_FILE=${KEY_FILE:?'KEY_FILE variable missing.'}
 PROJECT=${PROJECT:?'PROJECT variable missing.'}
-IFS=',' read -ra FUNCTION_NAMES <<< "${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'}"
-ENTRY_POINT=${ENTRY_POINT:?'ENTRY_POINT variable missing.'}
 RUNTIME=${RUNTIME:?'RUNTIME variable missing.'}
 REGION=${REGION:?'REGION variable missing.'}
+
+FUNCTION_NAME_COUNT=${FUNCTION_NAME_COUNT:?'FUNCTION_NAME_COUNT variable missing.'}
+ENTRY_POINT_COUNT=${ENTRY_POINT_COUNT:?'ENTRY_POINT_COUNT variable missing.'}
+
+if [ "$ENTRY_POINT_COUNT" != "$FUNCTION_NAME_COUNT" ]; then
+  error "Number of ENTRY_POINTS is not equal number of FUNCTION_NAMES."
+  exit 1
+fi
+
+for i in $(seq 0 $((FUNCTION_NAME_COUNT - 1))); do
+  eval "FUNCTION_NAME_${i}=\${FUNCTION_NAME_${i}:?'FUNCTION_NAME_${i} variable missing.'}"
+done
+
+for i in $(seq 0 $((ENTRY_POINT_COUNT - 1))); do
+  eval "ENTRY_POINT_${i}=\${ENTRY_POINT_${i}:?'ENTRY_POINT_${i} variable missing.'}"
+done
 
 info "Setting up environment".
 
@@ -49,10 +63,6 @@ fi
 
 if [ ! -z "${REGION}" ]; then
   ARGS_STRING="${ARGS_STRING} --region=${REGION} "
-fi
-
-if [ ! -z "${ENTRY_POINT}" ]; then
-  ARGS_STRING="${ARGS_STRING} --entry-point=${ENTRY_POINT} "
 fi
 
 if [ ! -z "${MEMORY}" ]; then
@@ -79,9 +89,23 @@ if [ ! -z "${ALLOW_UNAUTHENTICATED}" ]; then
   ARGS_STRING="${ARGS_STRING} --allow-unauthenticated "
 fi
 
-info "Starting deployment GCP Cloud Function..."
+info "Rozpoczynam wdrażanie funkcji GCP Cloud..."
 
-for FUNCTION_NAME in "${FUNCTION_NAMES[@]}"; do
-  info "Wdrażanie funkcji: $FUNCTION_NAME"
-  run gcloud functions deploy ${FUNCTION_NAME}" $ARGS_STRING ${EXTRA_ARGS} ${gcloud_debug_args}
+
+for i in $(seq 0 $((FUNCTION_NAME_COUNT - 1))); do
+  eval "current_function=\${FUNCTION_NAME_${i}}"
+  eval "current_entry_point=\${ENTRY_POINT_${i}}"
+  
+  CURRENT_ARGS_STRING="${ARGS_STRING} --entry-point=${current_entry_point}"
+
+  info "Wdrażanie funkcji: ${current_function}"
+  run gcloud functions deploy ${current_function} ${CURRENT_ARGS_STRING} ${EXTRA_ARGS} ${gcloud_debug_args}
+
+  if [ "${status}" -eq 0 ]; then
+    success "Wdrożenie funkcji ${current_function} zakończone sukcesem."
+  else
+    fail "Wdrożenie funkcji ${current_function} nie powiodło się."
+  fi
 done
+
+success "Wszystkie wdrożenia zakończone."
