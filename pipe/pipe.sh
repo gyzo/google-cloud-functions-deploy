@@ -25,8 +25,13 @@ enable_debug
 # mandatory parameters
 KEY_FILE=${KEY_FILE:?'KEY_FILE variable missing.'}
 PROJECT=${PROJECT:?'PROJECT variable missing.'}
-FUNCTION_NAME=${FUNCTION_NAME:?'FUNCTION_NAME variable missing.'}
-ENTRY_POINT=${ENTRY_POINT:?'ENTRY_POINT variable missing.'}
+FUNCTION_NAME_COUNT=${FUNCTION_NAME_COUNT:?'FUNCTION_NAME_COUNT variable missing.'}
+for i in $(seq 0 $((FUNCTION_NAME_COUNT - 1))); do
+  eval "FUNCTION_NAME_${i}=\${FUNCTION_NAME_${i}:?'FUNCTION_NAME_${i} variable missing.'}"
+done
+for i in $(seq 0 $((ENTRY_POINT_COUNT - 1))); do
+  eval "ENTRY_POINT_${i}=\${ENTRY_POINT_${i}:?'ENTRY_POINT_${i} variable missing.'}"
+done
 RUNTIME=${RUNTIME:?'RUNTIME variable missing.'}
 REGION=${REGION:?'REGION variable missing.'}
 
@@ -48,10 +53,6 @@ fi
 
 if [ ! -z "${REGION}" ]; then
   ARGS_STRING="${ARGS_STRING} --region=${REGION} "
-fi
-
-if [ ! -z "${ENTRY_POINT}" ]; then
-  ARGS_STRING="${ARGS_STRING} --entry-point=${ENTRY_POINT} "
 fi
 
 if [ ! -z "${MEMORY}" ]; then
@@ -78,12 +79,22 @@ if [ ! -z "${ALLOW_UNAUTHENTICATED}" ]; then
   ARGS_STRING="${ARGS_STRING} --allow-unauthenticated "
 fi
 
-info "Starting deployment GCP Cloud Function..."
+info "Rozpoczynam wdrażanie funkcji GCP Cloud..."
 
-run gcloud functions deploy ${FUNCTION_NAME} ${ARGS_STRING} ${EXTRA_ARGS} ${gcloud_debug_args}
+for i in $(seq 0 $((FUNCTION_NAME_COUNT - 1))); do
+  eval "current_function=\${FUNCTION_NAME_${i}}"
+  eval "current_entry_point=\${ENTRY_POINT_${i}}"
+  
+  CURRENT_ARGS_STRING="${ARGS_STRING} --entry-point=${current_entry_point}"
 
-if [ "${status}" -eq 0 ]; then
-  success "Deployment successful."
-else
-  fail "Deployment failed."
-fi
+  info "Wdrażanie funkcji: ${current_function}"
+  run gcloud functions deploy ${current_function} ${CURRENT_ARGS_STRING} ${EXTRA_ARGS} ${gcloud_debug_args}
+
+  if [ "${status}" -eq 0 ]; then
+    success "Wdrożenie funkcji ${current_function} zakończone sukcesem."
+  else
+    fail "Wdrożenie funkcji ${current_function} nie powiodło się."
+  fi
+done
+
+success "Wszystkie wdrożenia zakończone."
